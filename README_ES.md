@@ -6,7 +6,7 @@
 
 ![Logotipo de CONSUL](https://raw.githubusercontent.com/consul/consul/master/public/consul_logo.png)
 
-# CONSUL
+# CONSUL - Ayuntamiento de Cieza
 
 Aplicación de Participación Ciudadana y Gobierno Abierto
 
