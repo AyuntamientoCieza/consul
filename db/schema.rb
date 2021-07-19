@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_16_132642) do
+ActiveRecord::Schema.define(version: 2021_01_23_100638) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -286,6 +286,8 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.datetime "updated_at", null: false
     t.text "description"
     t.text "summary"
+    t.string "name"
+    t.string "main_link_text"
     t.index ["budget_phase_id"], name: "index_budget_phase_translations_on_budget_phase_id"
     t.index ["locale"], name: "index_budget_phase_translations_on_locale"
   end
@@ -297,6 +299,7 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.datetime "starts_at"
     t.datetime "ends_at"
     t.boolean "enabled", default: true
+    t.string "main_link_url"
     t.index ["ends_at"], name: "index_budget_phases_on_ends_at"
     t.index ["kind"], name: "index_budget_phases_on_kind"
     t.index ["next_phase_id"], name: "index_budget_phases_on_next_phase_id"
@@ -317,6 +320,7 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
+    t.string "main_link_text"
     t.index ["budget_id"], name: "index_budget_translations_on_budget_id"
     t.index ["locale"], name: "index_budget_translations_on_locale"
   end
@@ -360,6 +364,8 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.text "description_publishing_prices"
     t.text "description_informing"
     t.string "voting_style", default: "knapsack"
+    t.boolean "published"
+    t.string "main_link_url"
   end
 
   create_table "campaigns", id: :serial, force: :cascade do |t|
@@ -1322,7 +1328,9 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.string "code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "goal_id"
     t.index ["code"], name: "index_sdg_local_targets_on_code", unique: true
+    t.index ["goal_id"], name: "index_sdg_local_targets_on_goal_id"
     t.index ["target_id"], name: "index_sdg_local_targets_on_target_id"
   end
 
@@ -1331,6 +1339,13 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_sdg_managers_on_user_id", unique: true
+  end
+
+  create_table "sdg_phases", force: :cascade do |t|
+    t.integer "kind", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["kind"], name: "index_sdg_phases_on_kind", unique: true
   end
 
   create_table "sdg_relations", force: :cascade do |t|
@@ -1343,6 +1358,14 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.index ["relatable_type", "relatable_id"], name: "index_sdg_relations_on_relatable_type_and_relatable_id"
     t.index ["related_sdg_id", "related_sdg_type", "relatable_id", "relatable_type"], name: "sdg_relations_unique", unique: true
     t.index ["related_sdg_type", "related_sdg_id"], name: "index_sdg_relations_on_related_sdg_type_and_related_sdg_id"
+  end
+
+  create_table "sdg_reviews", force: :cascade do |t|
+    t.string "relatable_type"
+    t.bigint "relatable_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["relatable_type", "relatable_id"], name: "index_sdg_reviews_on_relatable_type_and_relatable_id", unique: true
   end
 
   create_table "sdg_targets", force: :cascade do |t|
@@ -1647,9 +1670,10 @@ ActiveRecord::Schema.define(version: 2020_12_16_132642) do
     t.boolean "header", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "site_customization_page_id"
+    t.integer "cardable_id"
     t.integer "columns", default: 4
-    t.index ["site_customization_page_id"], name: "index_widget_cards_on_site_customization_page_id"
+    t.string "cardable_type", default: "SiteCustomization::Page"
+    t.index ["cardable_id"], name: "index_widget_cards_on_cardable_id"
   end
 
   create_table "widget_feeds", id: :serial, force: :cascade do |t|

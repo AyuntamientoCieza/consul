@@ -20,17 +20,12 @@
       <tr>
         <td><%= banner.post_started_at %></td>
         <td><%= banner.post_ended_at %></td>
-        <td>
-          <%= render Admin::TableActionsComponent.new(banner,
-            edit_text: t("admin.banners.index.edit"),
-            destroy_text: t("admin.banners.index.delete")
-          ) %>
-        </td>
+        <td><%= render Admin::TableActionsComponent.new(banner) %></td>
       </tr>
       <tr>
         <td colspan="3">
           <span class="help-text"><%= t("admin.banners.index.preview") %></span>
-          <%= render "shared/banner", banner: banner %>
+          <%= render Shared::BannerComponent.new(banner) %>
         </td>
       </tr>
     </tbody>

@@ -1,7 +1,7 @@
 require "rails_helper"
 
 describe "Cards", :admin do
-  scenario "Create", :js do
+  scenario "Create" do
     visit admin_homepage_path
     click_link "Create card"
 
@@ -18,18 +18,19 @@ describe "Cards", :admin do
     expect(page).to have_content "Card created successfully!"
     expect(page).to have_css(".homepage-card", count: 1)
 
-    card = Widget::Card.last
-    within("#widget_card_#{card.id}") do
-      expect(page).to have_content "Card label"
-      expect(page).to have_content "Card text"
-      expect(page).to have_content "Card description"
-      expect(page).to have_content "Link text"
-      expect(page).to have_content "consul.dev"
-      expect(page).to have_link("Show image", href: card.image_url(:large))
+    within "#cards" do
+      within all("tbody tr").last do
+        expect(page).to have_content "Card label"
+        expect(page).to have_content "Card text"
+        expect(page).to have_content "Card description"
+        expect(page).to have_content "Link text"
+        expect(page).to have_content "consul.dev"
+        expect(page).to have_link "Show image", title: "clippy.jpg"
+      end
     end
   end
 
-  scenario "Create with errors", :js do
+  scenario "Create with errors" do
     visit admin_homepage_path
     click_link "Create card"
     click_button "Create card"
@@ -91,16 +92,19 @@ describe "Cards", :admin do
     expect(page).to have_content "Card updated successfully"
 
     expect(page).to have_css(".homepage-card", count: 1)
-    within("#widget_card_#{Widget::Card.last.id}") do
-      expect(page).to have_content "Card label updated"
-      expect(page).to have_content "Card text updated"
-      expect(page).to have_content "Card description updated"
-      expect(page).to have_content "Link text updated"
-      expect(page).to have_content "consul.dev updated"
+
+    within "#cards" do
+      within all("tbody tr").last do
+        expect(page).to have_content "Card label updated"
+        expect(page).to have_content "Card text updated"
+        expect(page).to have_content "Card description updated"
+        expect(page).to have_content "Link text updated"
+        expect(page).to have_content "consul.dev updated"
+      end
     end
   end
 
-  scenario "Remove", :js do
+  scenario "Remove" do
     card = create(:widget_card)
 
     visit admin_homepage_path
@@ -143,7 +147,7 @@ describe "Cards", :admin do
       end
     end
 
-    scenario "Create with errors", :js do
+    scenario "Create with errors" do
       visit admin_homepage_path
       click_link "Create header"
       click_button "Create header"
@@ -155,11 +159,11 @@ describe "Cards", :admin do
     context "Page card" do
       let!(:custom_page) { create(:site_customization_page, :published) }
 
-      scenario "Create", :js do
+      scenario "Create" do
         visit admin_site_customization_pages_path
 
         within "#site_customization_page_#{custom_page.id}" do
-          click_link "See Cards"
+          click_link "Manage cards"
         end
 
         click_link "Create card"
@@ -168,6 +172,7 @@ describe "Cards", :admin do
           href: admin_site_customization_page_widget_cards_path(custom_page))
 
         fill_in "Title", with: "Card for a custom page"
+        fill_in "Link URL", with: "/any_path"
         click_button "Create card"
 
         expect(page).to have_current_path admin_site_customization_page_widget_cards_path(custom_page)
@@ -175,9 +180,9 @@ describe "Cards", :admin do
       end
 
       scenario "Show" do
-        card_1 = create(:widget_card, page: custom_page, title: "Card large", columns: 8)
-        card_2 = create(:widget_card, page: custom_page, title: "Card medium", columns: 4)
-        card_3 = create(:widget_card, page: custom_page, title: "Card small", columns: 2)
+        card_1 = create(:widget_card, cardable: custom_page, title: "Card large", columns: 8)
+        card_2 = create(:widget_card, cardable: custom_page, title: "Card medium", columns: 4)
+        card_3 = create(:widget_card, cardable: custom_page, title: "Card small", columns: 2)
 
         visit custom_page.url
 
@@ -189,13 +194,13 @@ describe "Cards", :admin do
       end
 
       scenario "Show label only if it is present" do
-        card_1 = create(:widget_card, page: custom_page, title: "Card one", label: "My label")
-        card_2 = create(:widget_card, page: custom_page, title: "Card two")
+        card_1 = create(:widget_card, cardable: custom_page, title: "Card one", label: "My label")
+        card_2 = create(:widget_card, cardable: custom_page, title: "Card two")
 
         visit custom_page.url
 
         within("#widget_card_#{card_1.id}") do
-          expect(page).to have_selector("span", text: "My label")
+          expect(page).to have_selector("span", text: "MY LABEL")
         end
 
         within("#widget_card_#{card_2.id}") do
@@ -203,8 +208,8 @@ describe "Cards", :admin do
         end
       end
 
-      scenario "Edit", :js do
-        create(:widget_card, page: custom_page, title: "Original title")
+      scenario "Edit" do
+        create(:widget_card, cardable: custom_page, title: "Original title")
 
         visit admin_site_customization_page_widget_cards_path(custom_page)
 
@@ -226,8 +231,8 @@ describe "Cards", :admin do
         expect(page).not_to have_content "Original title"
       end
 
-      scenario "Destroy", :js do
-        create(:widget_card, page: custom_page, title: "Card title")
+      scenario "Destroy" do
+        create(:widget_card, cardable: custom_page, title: "Card title")
 
         visit admin_site_customization_page_widget_cards_path(custom_page)
 
@@ -247,11 +252,8 @@ describe "Cards", :admin do
 
   def attach_image_to_card
     click_link "Add image"
-    image_input = all(".image").last.find("input[type=file]", visible: false)
-    attach_file(
-      image_input[:id],
-      Rails.root.join("spec/fixtures/files/clippy.jpg"),
-      make_visible: true)
+    attach_file "Choose image", Rails.root.join("spec/fixtures/files/clippy.jpg")
+
     expect(page).to have_field("widget_card_image_attributes_title", with: "clippy.jpg")
   end
 end

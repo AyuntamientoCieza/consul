@@ -17,9 +17,11 @@ describe SDGManagement::MenuComponent, type: :component do
       render_inline component
 
       expect(page).to have_link "Goals and Targets"
+      expect(page).to have_link "SDG homepage"
       expect(page).to have_link "Participatory budgets"
       expect(page).to have_link "Debates"
-      expect(page).to have_link "Collaborative legislation"
+      expect(page).to have_link "Legislation processes"
+      expect(page).to have_link "Legislation proposals"
       expect(page).to have_link "Polls"
       expect(page).to have_link "Proposals"
     end
@@ -37,8 +39,9 @@ describe SDGManagement::MenuComponent, type: :component do
     it "does not generate links to any processes" do
       render_inline component
 
-      expect(page).to have_css "a", count: 1
+      expect(page).to have_css "a", count: 2
       expect(page).to have_link "Goals and Targets"
+      expect(page).to have_link "SDG homepage"
     end
   end
 
@@ -54,8 +57,9 @@ describe SDGManagement::MenuComponent, type: :component do
     it "does not generate links to any processes" do
       render_inline component
 
-      expect(page).to have_css "a", count: 1
+      expect(page).to have_css "a", count: 2
       expect(page).to have_link "Goals and Targets"
+      expect(page).to have_link "SDG homepage"
     end
   end
 
@@ -66,8 +70,10 @@ describe SDGManagement::MenuComponent, type: :component do
       render_inline component
 
       expect(page).to have_link "Goals and Targets"
+      expect(page).to have_link "SDG homepage"
       expect(page).to have_link "Participatory budgets"
-      expect(page).to have_link "Collaborative legislation"
+      expect(page).to have_link "Legislation processes"
+      expect(page).to have_link "Legislation proposals"
       expect(page).to have_link "Polls"
       expect(page).to have_link "Proposals"
 
@@ -82,12 +88,14 @@ describe SDGManagement::MenuComponent, type: :component do
       render_inline component
 
       expect(page).to have_link "Goals and Targets"
+      expect(page).to have_link "SDG homepage"
       expect(page).to have_link "Debates"
       expect(page).to have_link "Participatory budgets"
       expect(page).to have_link "Polls"
       expect(page).to have_link "Proposals"
 
-      expect(page).not_to have_link "Collaborative legislation"
+      expect(page).not_to have_link "Legislation processes"
+      expect(page).not_to have_link "Legislation proposals"
     end
   end
 end

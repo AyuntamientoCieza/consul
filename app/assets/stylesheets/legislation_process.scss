@@ -15,21 +15,7 @@
 // --------
 
 .legislation-hero {
-
-  ul {
-    list-style: none;
-    margin-left: 0;
-
-    li {
-
-      &::before {
-        color: #8aa8be;
-        content: "■";
-        padding-right: $line-height / 4;
-        vertical-align: text-bottom;
-      }
-    }
-  }
+  @include full-width-background;
 
   .title {
     font-weight: bold;
@@ -45,7 +31,7 @@
 // ----------------------------------
 
 .legislation-process-list {
-  border-bottom: 1px solid $border;
+  @include full-width-border(bottom, 1px solid $border);
 }
 
 .key-dates {
@@ -126,19 +112,8 @@
     @include breakpoint(large) {
       background: none;
       border: 1px solid $border;
-      border-bottom: 0;
-
-      &::after {
-        border-bottom: 1px solid #fefefe;
-        bottom: -1px;
-        left: 0;
-        position: absolute;
-        width: 100%;
-      }
-    }
-
-    &::after {
-      content: "";
+      border-bottom-color: $body-background;
+      z-index: 1;
     }
   }
 }
@@ -159,8 +134,8 @@
     margin-bottom: rem-calc(40);
 
     .debate-type {
+      @include brand-text;
       text-transform: uppercase;
-      color: $brand;
       font-weight: 700;
       font-size: $small-font-size;
 
@@ -170,7 +145,7 @@
     }
 
     .debate-title a {
-      color: $brand;
+      @include brand-text;
     }
   }
 
@@ -223,7 +198,7 @@
     }
 
     h4 a {
-      color: $brand;
+      @include brand-text;
 
       &:hover {
         text-decoration: none;
@@ -240,8 +215,8 @@
     }
 
     .quiz-next {
+      @include brand-text;
       background: #ccdbe5;
-      color: $brand;
       font-size: $small-font-size;
       font-weight: bold;
       text-align: right;
@@ -254,8 +229,7 @@
 
       &:hover,
       &:active {
-        background: $brand;
-        color: #fff;
+        @extend %brand-background;
         text-decoration: none;
       }
     }
@@ -514,7 +488,7 @@
       }
 
       a {
-        color: $text;
+        color: inherit;
 
         &:hover,
         &:active,
@@ -522,7 +496,7 @@
           text-decoration: none;
 
           h3 {
-            color: $text;
+            color: inherit;
           }
 
           .anchor::before {
@@ -599,7 +573,6 @@
     }
 
     .calc-comments {
-      background: #fff;
       cursor: auto;
 
       @include breakpoint(small only) {
@@ -993,7 +966,6 @@
 
 .process-summary {
   > section {
-    @include grid-row;
     margin-top: $line-height * 1.5;
     padding: 0 rem-calc(16);
   }

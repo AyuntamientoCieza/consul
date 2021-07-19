@@ -51,8 +51,9 @@ namespace :admin do
     end
   end
 
-  resources :budgets do
+  resources :budgets, except: [:create, :new] do
     member do
+      patch :publish
       put :calculate_winners
     end
 
@@ -69,6 +70,18 @@ namespace :admin do
     end
 
     resources :budget_phases, only: [:edit, :update]
+  end
+
+  namespace :budgets_wizard do
+    resources :budgets, only: [:create, :new, :edit, :update] do
+      resources :groups, only: [:index, :create, :edit, :update, :destroy] do
+        resources :headings, only: [:index, :create, :edit, :update, :destroy]
+      end
+
+      resources :phases, as: "budget_phases", only: [:index, :edit, :update] do
+        collection { patch :update_all }
+      end
+    end
   end
 
   resources :milestone_statuses, only: [:index, :new, :create, :update, :edit, :destroy]
@@ -204,6 +217,7 @@ namespace :admin do
     get :proposal_notifications, on: :collection
     get :direct_messages, on: :collection
     get :polls, on: :collection
+    get :sdg, on: :collection
   end
 
   namespace :legislation do
@@ -271,7 +285,7 @@ resolve "Audit" do |audit|
 end
 
 resolve "Widget::Card" do |card, options|
-  [*resource_hierarchy_for(card.page), card]
+  [*resource_hierarchy_for(card.cardable), card]
 end
 
 resolve "Budget::Group" do |group, options|

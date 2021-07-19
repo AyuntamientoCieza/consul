@@ -15,7 +15,7 @@
           params[:retired].present?,
           params[:selected].present?
         ].any? %>
-    <div class="highlight no-margin-top padding margin-bottom">
+    <div class="search-results-summary">
       <div class="row">
         <div class="small-12 column">
           <% if @search_terms || @advanced_search_terms %>
@@ -49,7 +49,7 @@
   <div class="row">
     <div id="proposals" class="proposals-list small-12 medium-9 column">
 
-      <%= render "shared/banner" %>
+      <%= render Shared::BannerComponent.new("proposals") %>
 
       <% if show_featured_proposals? %>
         <div id="featured-proposals" class="row featured-proposals">

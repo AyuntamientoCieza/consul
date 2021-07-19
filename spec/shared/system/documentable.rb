@@ -101,7 +101,7 @@ shared_examples "documentable" do |documentable_factory_name, documentable_path,
       visit send(documentable_path, arguments)
 
       within "#document_#{document.id}" do
-        click_on "Delete document"
+        accept_confirm { click_link "Delete document" }
       end
 
       expect(page).to have_content "Document was deleted successfully."
@@ -113,7 +113,7 @@ shared_examples "documentable" do |documentable_factory_name, documentable_path,
       visit send(documentable_path, arguments)
 
       within "#document_#{document.id}" do
-        click_on "Delete document"
+        accept_confirm { click_link "Delete document" }
       end
 
       expect(page).not_to have_content "Documents (0)"
@@ -125,21 +125,12 @@ shared_examples "documentable" do |documentable_factory_name, documentable_path,
       visit send(documentable_path, arguments)
 
       within "#document_#{document.id}" do
-        click_on "Delete document"
+        accept_confirm { click_link "Delete document" }
       end
 
       within "##{ActionView::RecordIdentifier.dom_id(documentable)}" do
         expect(page).to have_selector "h1", text: documentable.title
       end
     end
-  end
-end
-
-def attach_document(path, success = true)
-  attach_file :document_attachment, path, make_visible: true
-  if success
-    expect(page).to have_css ".loading-bar.complete"
-  else
-    expect(page).to have_css ".loading-bar.errors"
   end
 end

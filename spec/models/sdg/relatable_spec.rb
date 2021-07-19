@@ -36,9 +36,9 @@ describe SDG::Relatable do
     end
   end
 
-  describe "#sdg_targets" do
+  describe "#sdg_global_targets" do
     it "can assign targets to a model" do
-      relatable.sdg_targets = [target, another_target]
+      relatable.sdg_global_targets = [target, another_target]
 
       expect(SDG::Relation.count).to be 2
       expect(SDG::Relation.first.relatable).to eq relatable
@@ -48,9 +48,9 @@ describe SDG::Relatable do
     end
 
     it "can obtain the list of targets" do
-      relatable.sdg_targets = [target, another_target]
+      relatable.sdg_global_targets = [target, another_target]
 
-      expect(relatable.reload.sdg_targets).to match_array [target, another_target]
+      expect(relatable.reload.sdg_global_targets).to match_array [target, another_target]
     end
   end
 
@@ -59,6 +59,25 @@ describe SDG::Relatable do
       relatable.sdg_targets = [SDG::Target[2.2], SDG::Target[1.2], SDG::Target[2.1]]
 
       expect(relatable.sdg_target_list).to eq "1.2, 2.1, 2.2"
+    end
+
+    it "includes both targets and local targets in order" do
+      relatable.sdg_global_targets = [SDG::Target[2.2], SDG::Target[1.2], SDG::Target[2.1]]
+      relatable.sdg_local_targets = %w[1.1.1 2.1.3].map { |code| create(:sdg_local_target, code: code) }
+
+      expect(relatable.sdg_target_list).to eq "1.1.1, 1.2, 2.1, 2.1.3, 2.2"
+    end
+  end
+
+  describe "#sdg_targets=" do
+    it "assigns both targets and local targets" do
+      global_targets = [SDG::Target[2.2], SDG::Target[1.2]]
+      local_targets = %w[2.2.1 3.1.1].map { |code| create(:sdg_local_target, code: code) }
+
+      relatable.sdg_targets = global_targets + local_targets
+
+      expect(relatable.sdg_global_targets).to match_array global_targets
+      expect(relatable.sdg_local_targets).to match_array local_targets
     end
   end
 
@@ -80,6 +99,16 @@ describe SDG::Relatable do
     end
   end
 
+  describe "#related_sdg_list" do
+    it "orders related list by code" do
+      relatable.sdg_goals = [SDG::Goal[1], SDG::Goal[3], SDG::Goal[2]]
+      local_targets = %w[2.2.2 2.2.1 3.1.1].map { |code| create(:sdg_local_target, code: code) }
+      relatable.sdg_targets = [SDG::Target[2.2], SDG::Target[1.2], SDG::Target[2.1]] + local_targets
+
+      expect(relatable.related_sdg_list).to eq "1, 1.2, 2, 2.1, 2.2, 2.2.1, 2.2.2, 3, 3.1.1"
+    end
+  end
+
   describe "#related_sdgs" do
     it "returns all related goals and targets" do
       relatable.sdg_goals = [goal, another_goal]
@@ -91,29 +120,82 @@ describe SDG::Relatable do
     end
   end
 
-  describe "#sdg_target_list=" do
-    it "assigns a single target" do
-      relatable.sdg_target_list = "1.1"
+  describe "#related_sdg_list=" do
+    it "assigns a single goal" do
+      relatable.related_sdg_list = "1"
 
-      expect(relatable.reload.sdg_targets).to match_array [SDG::Target["1.1"]]
+      expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1]]
+    end
+
+    it "assigns a single target" do
+      relatable.related_sdg_list = "1.1"
+
+      expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1]]
+      expect(relatable.reload.sdg_targets).to match_array [SDG::Target[1.1]]
+    end
+
+    it "assigns a single local target" do
+      relatable.related_sdg_list = local_target.code
+
+      expect(relatable.reload.sdg_goals).to match_array [local_target.goal]
+      expect(relatable.reload.sdg_local_targets).to match_array [local_target]
     end
 
     it "assigns multiple targets" do
-      relatable.sdg_target_list = "1.1,2.3"
+      relatable.related_sdg_list = "1.1,2.3"
 
-      expect(relatable.reload.sdg_targets).to match_array [SDG::Target["1.1"], SDG::Target["2.3"]]
+      expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1], SDG::Goal[2]]
+      expect(relatable.reload.sdg_targets).to match_array [SDG::Target[1.1], SDG::Target[2.3]]
+    end
+
+    it "assigns multiple goals" do
+      relatable.related_sdg_list = "3,2,1"
+
+      expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1], SDG::Goal[2], SDG::Goal[3]]
+    end
+
+    it "assigns multiple local targets" do
+      relatable.related_sdg_list = "#{local_target.code}, #{another_local_target.code}"
+
+      expect(relatable.reload.sdg_goals).to match_array [local_target.goal, another_local_target.goal]
+      expect(relatable.reload.sdg_local_targets).to match_array [local_target, another_local_target]
     end
 
     it "ignores trailing spaces and spaces between commas" do
-      relatable.sdg_target_list = " 1.1,  2.3 "
-
-      expect(relatable.reload.sdg_targets).to match_array [SDG::Target["1.1"], SDG::Target["2.3"]]
-    end
-
-    it "assigns goals" do
-      relatable.sdg_target_list = "1.1,1.2,2.3"
+      relatable.related_sdg_list = " 1.1,  2.3 "
 
       expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1], SDG::Goal[2]]
+      expect(relatable.reload.sdg_targets).to match_array [SDG::Target[1.1], SDG::Target[2.3]]
+    end
+
+    it "assigns goals, targets and local_targets" do
+      relatable.related_sdg_list = "1.1,3,4,4.1,#{another_local_target.code}"
+
+      expect(relatable.reload.sdg_goals).to match_array [SDG::Goal[1], another_local_target.goal, SDG::Goal[3], SDG::Goal[4]]
+      expect(relatable.reload.sdg_global_targets).to match_array [SDG::Target[1.1], SDG::Target[4.1]]
+      expect(relatable.reload.sdg_local_targets).to match_array [another_local_target]
+    end
+
+    it "touches the associated record" do
+      relatable.related_sdg_list = "1.1, 2.1, 2.2"
+
+      travel(10.seconds) do
+        relatable.related_sdg_list = "1.1, 2.1, 2.2, 3.1"
+
+        expect(relatable.updated_at).to eq Time.current
+      end
+    end
+  end
+
+  describe "#sdg_review" do
+    it "returns nil when relatable is not reviewed" do
+      expect(relatable.sdg_review).to be_blank
+    end
+
+    it "returns the review when relatable is reviewed" do
+      review = create(:sdg_review, relatable: relatable)
+
+      expect(relatable.sdg_review).to eq(review)
     end
   end
 
@@ -153,9 +235,41 @@ describe SDG::Relatable do
 
     it "does not return records not associated with that target" do
       create(:proposal)
-      create(:proposal, sdg_targets: [another_target])
+      create(:proposal, sdg_global_targets: [another_target])
 
       expect(relatable.class.by_target(target.code)).to be_empty
+    end
+
+    it "returns records associated to a local target" do
+      relatable.sdg_local_targets = [local_target]
+
+      expect(relatable.class.by_target(local_target.code)).to eq [relatable]
+    end
+
+    it "does not return records not associated with that local target" do
+      create(:proposal)
+      create(:proposal, sdg_local_targets: [another_local_target])
+
+      expect(relatable.class.by_target(local_target.code)).to be_empty
+    end
+  end
+
+  describe ".pending_sdg_review" do
+    let!(:relatable) { create(:proposal) }
+
+    it "returns records not reviewed yet" do
+      create(:sdg_review, relatable: create(:proposal))
+
+      expect(relatable.class.pending_sdg_review).to match_array [relatable]
+    end
+  end
+
+  describe ".sdg_reviewed" do
+    let!(:relatable) { create(:proposal) }
+    let!(:reviewed_relatable) { create(:sdg_review, relatable: create(:proposal)).relatable }
+
+    it "returns records already reviewed" do
+      expect(relatable.class.sdg_reviewed).to match_array [reviewed_relatable]
     end
   end
 end
